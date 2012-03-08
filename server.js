@@ -4,12 +4,10 @@ var express      = require('express'),
     app          = express.createServer(express.logger()),
     io           = socket.listen(app),
     port         = process.env.PORT || 3000,
-//    token        = process.env.TOKEN,
-//    domain       = process.env.DOMAIN,
-    token        = 'GAlPV7Sk_____3licmtoanJ5czNncnFjbnQ4dHVydHI1OGxvY2FsaG9zdELgyTPmDCCEwW-cpHjJq9E=',
-    domain       = 'localhost',
-    consumerKey  = process.env.CONSUMER_KEY || 'ybrkhjrys3grqcnt8turtr58',
-    consumerSecret = process.env.CONSUMER_SECRET || '2GrTAwWTbQ',
+    token        = process.env.TOKEN,
+    domain       = process.env.DOMAIN,
+    consumerKey  = process.env.CONSUMER_KEY,
+    consumerSecret = process.env.CONSUMER_SECRET,
     clients      = {},
     host         = null,
     numListeners = 0;
@@ -39,7 +37,7 @@ app.get('/client.js', function(req, res) {
   res.render('client', { layout: false, token: token, domain: domain });
 });
 
-var albumStuff = {
+var albumInfo = {
 	getTrackList: function(albumId, socket) {
 		var trackList;
 		
@@ -148,7 +146,7 @@ io.sockets.on('connection', function(socket) {
       console.log('unrecorded: sent playing originating from host; id=' + socket.id);
       
       // get the track list and send it over
-      albumStuff.getTrackList(data.playingSource, socket);
+      albumInfo.getTrackList(data.playingSource, socket);
     }
   });
 
