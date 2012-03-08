@@ -10,7 +10,10 @@ var express      = require('express'),
     consumerSecret = process.env.CONSUMER_SECRET,
     clients      = {},
     host         = null,
-    numListeners = 0;
+    numListeners = 0,
+    trackList    = {},
+    previousSource = '',
+    currentSource  = '';
 
 app.configure(function() {
   app.set('views', __dirname + '/views');
@@ -37,32 +40,31 @@ app.get('/client.js', function(req, res) {
   res.render('client', { layout: false, token: token, domain: domain });
 });
 
-var albumInfo = {
-	getTrackList: function(albumId, socket) {
-		var trackList;
-		
-		if (albumId != null) {
+var sourceInfo = {
+	setTrackList: function(sourceId, socket) {
+		if (sourceId != null) {
 			trackList = new Array();
 			
-			// Create a new instance
 			var r = new Rdio({
 			  consumerKey: consumerKey, 
 			  consumerSecret: consumerSecret
 			});
 			
-			r.makeRequest('get', {keys: albumId}, function() {
-				var trackKeys = arguments[1].result[albumId].trackKeys;
+			r.makeRequest('get', {keys: sourceId}, function() {
+				var trackKeys = arguments[1].result[sourceId].trackKeys;
 				trackKeys = trackKeys + '';
 				
-				r.makeRequest('get', {keys: trackKeys}, function() {
-					var trackIds = arguments[1].result;
+				if (trackKeys != '') {
+					r.makeRequest('get', {keys: trackKeys}, function() {
+						var trackIds = arguments[1].result;
 
-					for (track in trackIds) {
-						trackList.push(trackIds[track].name);
-					}
+						for (track in trackIds) {
+							trackList.push(trackIds[track].name);
+						}
 
-					socket.broadcast.emit('trackList', trackList);
-				});
+						socket.broadcast.emit('trackList', trackList);
+					});
+				}
 			});
 		}
 	}
@@ -130,6 +132,8 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('playing', function(data) { 
+	currentSource  = data.playingSource;
+	
     console.log('unrecorded: received playing; id=' + socket.id);
 
     if(host == null) {
@@ -144,9 +148,11 @@ io.sockets.on('connection', function(socket) {
       });
 
       console.log('unrecorded: sent playing originating from host; id=' + socket.id);
-      
-      // get the track list and send it over
-      albumInfo.getTrackList(data.playingSource, socket);
+
+      if (previousSource != currentSource) {
+    	  previouseSource = currentSource;
+    	  sourceInfo.setTrackList(data.playingSource, socket);
+      }
     }
   });
 
