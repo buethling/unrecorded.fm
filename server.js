@@ -1,10 +1,15 @@
 var express      = require('express'),
     socket       = require('socket.io'),
+    Rdio         = require('rdio-node').Rdio,
     app          = express.createServer(express.logger()),
     io           = socket.listen(app),
     port         = process.env.PORT || 3000,
-    token        = process.env.TOKEN,
-    domain       = process.env.DOMAIN,
+//    token        = process.env.TOKEN,
+//    domain       = process.env.DOMAIN,
+    token        = 'GAlPV7Sk_____3licmtoanJ5czNncnFjbnQ4dHVydHI1OGxvY2FsaG9zdELgyTPmDCCEwW-cpHjJq9E=',
+    domain       = 'localhost',
+    consumerKey  = process.env.CONSUMER_KEY || 'ybrkhjrys3grqcnt8turtr58',
+    consumerSecret = process.env.CONSUMER_SECRET || '2GrTAwWTbQ',
     clients      = {},
     host         = null,
     numListeners = 0;
@@ -33,6 +38,37 @@ app.get('/', function(req, res) {
 app.get('/client.js', function(req, res) {
   res.render('client', { layout: false, token: token, domain: domain });
 });
+
+var albumStuff = {
+	getTrackList: function(albumId, socket) {
+		var trackList;
+		
+		if (albumId != null) {
+			trackList = new Array();
+			
+			// Create a new instance
+			var r = new Rdio({
+			  consumerKey: consumerKey, 
+			  consumerSecret: consumerSecret
+			});
+			
+			r.makeRequest('get', {keys: albumId}, function() {
+				var trackKeys = arguments[1].result[albumId].trackKeys;
+				trackKeys = trackKeys + '';
+				
+				r.makeRequest('get', {keys: trackKeys}, function() {
+					var trackIds = arguments[1].result;
+
+					for (track in trackIds) {
+						trackList.push(trackIds[track].name);
+					}
+
+					socket.broadcast.emit('trackList', trackList);
+				});
+			});
+		}
+	}
+}
 
 var clientManagement = {
   promoteHost: function(socket) { 
@@ -110,6 +146,9 @@ io.sockets.on('connection', function(socket) {
       });
 
       console.log('unrecorded: sent playing originating from host; id=' + socket.id);
+      
+      // get the track list and send it over
+      albumStuff.getTrackList(data.playingSource, socket);
     }
   });
 

@@ -113,6 +113,12 @@
       }
     });
     
+    // When we receive the trackList just dump it to the console for now
+    //
+    socket.on('trackList', function(data) {
+    	console.log('unrecorded: track listing={' + data + '}');
+    });
+    
     // When you start playing something, send events about tracks, but
     // don't send playlist events, because the client can get that data
     // from the track event which immediately follows.  Also update local
