@@ -4,15 +4,21 @@ Unrecorded.fm: the group Rdio® listening experience.
 
 ## Work In Progress
 
-Currently under development.  Try it out [here!](http://unrecorded.fm:8001)
+Currently under development.  Try it out [here!](http://unrecorded.fm)
+
+## Requirements
+
+1. om.js and rdio.js (https://github.com/rdio/rdio-simple/tree/master/node)
 
 ## Usage
 
 1. Set the TOKEN environment variable with your Rdio token.
 2. Set the DOMAIN environment variable with the domain the app is being served from.
-3. Start the node server.  ```node server.js```
-4. Log into Rdio.
-5. Visit and listen!
+3. Set the CONSUMER_KEY and CONSUMER_SECRET environment variables to the API Key and Shared Secret given to you by Rdio®.
+4. Put om.js and rdio.js in a directory called 'rdio-simple' in the root of the project.
+5. Start the node server.  ```node server.js```
+6. Log into Rdio.
+7. Visit and listen!
 
 ## Contributing
 

@@ -1,6 +1,7 @@
 var express      = require('express'),
     socket       = require('socket.io'),
-    Rdio         = require('rdio-node').Rdio,
+    Rdio         = require('./rdio-simple/rdio'),
+    EventEmitter = require('events').EventEmitter,
     app          = express.createServer(express.logger()),
     io           = socket.listen(app),
     port         = process.env.PORT || 3000,
@@ -40,33 +41,29 @@ app.get('/client.js', function(req, res) {
   res.render('client', { layout: false, token: token, domain: domain });
 });
 
-var sourceInfo = {
-	setTrackList: function(sourceId, socket) {
-		if (sourceId != null) {
-			trackList = new Array();
+var sourceInfo = new EventEmitter();
+sourceInfo.setTrackList = function(sourceId) {
+	if (sourceId != null) {
+		trackList = new Array();
+		
+		var r = new Rdio([consumerKey, consumerSecret]);
+		
+		r.call('get', {keys: sourceId}, function() {
+			var trackKeys = arguments[1].result[sourceId].trackKeys;
+			trackKeys = trackKeys + '';
 			
-			var r = new Rdio({
-			  consumerKey: consumerKey, 
-			  consumerSecret: consumerSecret
-			});
-			
-			r.makeRequest('get', {keys: sourceId}, function() {
-				var trackKeys = arguments[1].result[sourceId].trackKeys;
-				trackKeys = trackKeys + '';
-				
-				if (trackKeys != '') {
-					r.makeRequest('get', {keys: trackKeys}, function() {
-						var trackIds = arguments[1].result;
+			if (trackKeys != '') {
+				r.call('get', {keys: trackKeys}, function() {
+					var trackIds = arguments[1].result;
 
-						for (track in trackIds) {
-							trackList.push(trackIds[track].name);
-						}
-
-						socket.broadcast.emit('trackList', trackList);
-					});
-				}
-			});
-		}
+					for (track in trackIds) {
+						trackList.push(trackIds[track].name);
+					}
+					
+					sourceInfo.emit('setTrackListCompleted');
+				});
+			}
+		});
 	}
 }
 
@@ -151,7 +148,7 @@ io.sockets.on('connection', function(socket) {
 
       if (previousSource != currentSource) {
     	  previouseSource = currentSource;
-    	  sourceInfo.setTrackList(data.playingSource, socket);
+    	  sourceInfo.setTrackList(data.playingSource);
       }
     }
   });
@@ -162,6 +159,11 @@ io.sockets.on('connection', function(socket) {
     if(host == socket) { 
       clientManagement.demoteHost(socket);
     }
+  });
+  
+  sourceInfo.on('setTrackListCompleted', function(){
+	  if (socket != null)
+		  socket.broadcast.emit('trackList', trackList);
   });
 });
 
