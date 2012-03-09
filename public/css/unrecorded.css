@@ -170,3 +170,18 @@ a { color: #fff; cursor: pointer; }
 .player .player_footer > .player_controls > a.vol.volume_mute { color: #f46d6d;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
 }
+
+.trackList { display: none; height: 200px; width: 200px; overflow: auto; }
+.trackList ol { 
+	list-style: decimal;
+	padding-top: 2px; 
+	padding-left: 15px;
+	margin-top: 2px;
+	margin-left: 15px;
+}
+.trackList li { padding-bottom: 3px; margin-bottom: 3px; }
+.trackList a {text-decoration: none;}
+
+.trackList::-webkit-scrollbar { width: 12px; }
+.trackList::-webkit-scrollbar-track { -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); border-radius: 10px; }
+.trackList::-webkit-scrollbar-thumb { border-radius: 10px; -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); }

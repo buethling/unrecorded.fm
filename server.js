@@ -57,7 +57,7 @@ sourceInfo.setTrackList = function(sourceId) {
 					var trackIds = arguments[1].result;
 
 					for (track in trackIds) {
-						trackList.push(trackIds[track].name);
+						trackList.push({name: trackIds[track].name, url: trackIds[track].shortUrl});
 					}
 					
 					sourceInfo.emit('setTrackListCompleted');

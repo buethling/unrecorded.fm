@@ -45,6 +45,7 @@
     });
     
     // mute is local and should not send a socket event
+    //
     $('.vol').click(function(ev) {
       var target  = $(ev.target),
           muted   = target.hasClass('volume_mute');
@@ -59,6 +60,14 @@
       }
       
       apiswf.rdio_setMute(!muted);
+    });
+    
+    // when the album art is clicked show track list
+    //
+    $('.album').click(function(ev) {
+    	var target  = $(ev.target);
+    	$('.cover').toggle();
+    	$('.trackList').toggle();
     });
 
 
@@ -113,10 +122,20 @@
       }
     });
     
-    // When we receive the trackList just dump it to the console for now
+    // When we receive the trackList update the trackList div
     //
     socket.on('trackList', function(data) {
     	console.log('unrecorded: track listing={' + data + '}');
+    	var trackList = data;
+    	var tracksOL = '<ol>';
+    	
+    	for (track in trackList) {
+    		console.log("name: " + trackList[track].name + " url: " + trackList[track].url);
+    		tracksOL += '<li><a href="' + trackList[track].url + '" target="_blank">' + trackList[track].name + '</a></li>';
+    	}
+    	
+    	tracksOL += '</ol>';
+    	$('.trackList').append(tracksOL);
     });
     
     // When you start playing something, send events about tracks, but
